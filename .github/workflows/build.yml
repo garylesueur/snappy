@@ -35,16 +35,16 @@ jobs:
             echo "tag=${BASE}-build.${{ github.run_number }}" >> $GITHUB_OUTPUT
           fi
 
-      - name: Build
-        run: pnpm build
-
-      - name: Zip
+      - name: Build & Zip
         run: pnpm zip
+
+      - name: Rename zip
+        run: mv .output/*-chrome.zip .output/snappy-${{ steps.version.outputs.tag }}.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: snappy-${{ steps.version.outputs.tag }}
-          path: .output/*.zip
+          path: .output/snappy-${{ steps.version.outputs.tag }}.zip
           if-no-files-found: error
           retention-days: 90
