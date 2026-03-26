@@ -1,0 +1,50 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Resolve version tag
+        id: version
+        run: |
+          BASE=$(jq -r '.version' package.json)
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "tag=${BASE}-pr.${{ github.event.number }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${BASE}-build.${{ github.run_number }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build
+        run: pnpm build
+
+      - name: Zip
+        run: pnpm zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: snappy-${{ steps.version.outputs.tag }}
+          path: .output/*.zip
+          if-no-files-found: error
+          retention-days: 90
