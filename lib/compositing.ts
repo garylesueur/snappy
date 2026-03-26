@@ -8,6 +8,7 @@ interface FrameMetrics {
   radius: number;
 }
 
+//
 function getFrameMetrics(style: FrameStyle): FrameMetrics {
   switch (style) {
     case "macos":
